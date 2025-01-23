@@ -1,48 +1,83 @@
-import React from "react";
-import { StyleSheet } from "react-native";
+import React, { useState } from "react";
+import { View, TextInput, StyleSheet } from "react-native";
 import { GooglePlacesAutocomplete } from "react-native-google-places-autocomplete";
+import configs from "../../configs";
 
 interface LocationPickerProps {
   setLocation: (location: { description: string }) => void;
 }
 
 const LocationPicker: React.FC<LocationPickerProps> = ({ setLocation }) => {
+  const [showManualInput, setShowManualInput] = useState(false);
+  const [manualLocation, setManualLocation] = useState("");
+
+  // Manejar cambios en la entrada manual
+  const handleManualChange = (text: string) => {
+    setManualLocation(text);
+    setLocation({ description: text });
+  };
+
   return (
-    <GooglePlacesAutocomplete
-      placeholder="Escribe tu ubicación"
-      onPress={(data) => {
-        setLocation(data);
-      }}
-      query={{
-        key: process.env.GOOGLE_API_KEY, 
-        language: "es",
-        types: "(cities)",
-        components: "country:ve",
-      }}
-      enablePoweredByContainer={false}
-      fetchDetails={true}
-      minLength={2}
-      debounce={300}
-      styles={styles}
-    />
+    <View style={autoCompleteStyles.container}>
+      {showManualInput ? (
+        <TextInput
+        style={[autoCompleteStyles.textInput, { height: 60 }]} // Ajusta la altura
+        placeholder="Escribe tu ubicación"
+        placeholderTextColor="#666"
+        value={manualLocation}
+        onChangeText={handleManualChange}
+        onFocus={() => setShowManualInput(true)}
+        multiline={true} // Permite que sea multilinea
+        numberOfLines={2} // Muestra 2 líneas visibles
+        color="#FFFFFF"
+      />
+      ) : (
+        <GooglePlacesAutocomplete
+          placeholder="Buscar ubicación"
+          onPress={(data) => {
+            setLocation(data);
+            setShowManualInput(false);
+          }}
+          textInputProps={{
+            onFocus: () => setShowManualInput(false),
+          }}
+          query={{
+            key: configs.GOOGLE_API_KEY,
+            language: "es",
+            types: "geocode",
+            components: "country:ve",
+          }}
+          enablePoweredByContainer={false}
+          fetchDetails={true}
+          minLength={2}
+          debounce={300}
+          styles={autoCompleteStyles}
+          onFail={(error) => {
+            console.error("Error fetching locations:", error);
+          }}
+          onNotFound={() => {
+            console.log("No locations found.");
+          }}
+        />
+      )}
+    </View>
   );
 };
 
-const styles = StyleSheet.create({
+const autoCompleteStyles = StyleSheet.create({
   container: {
     flex: 0,
     width: "100%",
-    zIndex: 1,
   },
   textInput: {
-    height: 44,
+    height: 60, // Mayor altura para manejar texto largo
     backgroundColor: "#1C1C1C",
     borderRadius: 5,
     paddingHorizontal: 10,
     color: "#FFFFFF",
-    marginBottom: 20,
     fontSize: 16,
     width: "100%",
+    marginBottom: 20,
   },
   predefinedPlacesDescription: {
     color: "#FFFFFF",
@@ -68,6 +103,10 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     zIndex: 1000,
+    maxHeight: 200, // Limita la altura de la lista
+  },
+  scrollView: {
+    flexGrow: 1, // Permite el desplazamiento vertical
   },
 });
 

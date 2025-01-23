@@ -1,79 +1,107 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "expo-router";
-import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet, ActivityIndicator } from "react-native";
 import { useRouter } from "expo-router";
 import Card from "./ui/card";
-import PushNotification from "../context/PushNotification";
-import messaging from "@react-native-firebase/messaging";
+import { useAuth } from "../services/auth-services"; 
+import { driverServices } from '../services/driver-services';
+import { useDriver } from "../context/driver-context";
 
-export async function sendPushNotification() {
-    const token = await messaging().getToken();
-    if (token) {
-        console.log("FCM Token:", token);
-
-        Alert.alert("Notificación enviada", "Esta es tu notificación push");
-    }
-}
 
 
 const Login = () => {
     const router = useRouter();
+    const { login } = useAuth(); 
+    const { driver, setDriverData } = useDriver();
+    const { FindDriverById } = driverServices();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [loading, setLoading] = useState(false);
     const [dynamicText, setDynamicText] = useState("");
     const message = "Bienvenido Gruero/a";
-  
-    useEffect(() => {
-      let index = 0;
-      const interval = setInterval(() => {
-        if (index < message.length) {
-          setDynamicText((prev) => prev + message[index++]);
-        } else {
-          clearInterval(interval);
-        }
-      }, 100);
-  
-      return () => clearInterval(interval);
-    }, []);
-  
-    const handleLogin = () => {
-      if (email && password) {
-        router.replace("/home");
-        sendPushNotification();
-      } else {
-        Alert.alert("Error", "Por favor, completa todos los campos");
-      }
-    };
-  
-    return (
-      <View style={styles.container}>
-        <Card>
-        <Text style={styles.title}>Grúas UCAB</Text>
-       
-          <Text style={styles.dynamicText}>{dynamicText}</Text>
 
-          <TextInput
-            style={styles.input}
-            placeholder="Correo electrónico"
-            placeholderTextColor="#B0B0B0"
-            value={email}
-            onChangeText={setEmail}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Contraseña"
-            placeholderTextColor="#B0B0B0"
-            secureTextEntry
-            value={password}
-            onChangeText={setPassword}
-          />
-          <TouchableOpacity style={styles.button} onPress={handleLogin}>
-            <Text style={styles.buttonText}>Iniciar Sesión</Text>
-          </TouchableOpacity>
-        </Card>
-      </View>
+    const validateEmail = (email) => {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
+    };
+
+    useEffect(() => {
+        let index = 0;
+        const interval = setInterval(() => {
+            if (index < message.length) {
+                setDynamicText((prev) => prev + message[index++]);
+            } else {
+                clearInterval(interval);
+            }
+        }, 100);
+
+        return () => clearInterval(interval);
+    }, []);
+
+    const handleLogin = async () => {
+        if (!email || !password) {
+            Alert.alert("Error", "Por favor, completa todos los campos");
+            return;
+        }
+
+        if (!validateEmail(email)) {
+            Alert.alert("Error", "Por favor, ingresa un correo electrónico válido");
+            return;
+        }
+
+        setLoading(true); 
+        try {
+            const result = await login(email, password); 
+            if (result.success) {
+                await FindDriverById(setDriverData)
+                router.replace("/home"); 
+            } else {
+                Alert.alert("Error", result.error || "Credenciales inválidas");
+            }
+        } catch (error) {
+            Alert.alert("Error", error.message || "No se pudo conectar al servidor. Inténtalo de nuevo.");
+        } finally {
+            setLoading(false); 
+        }
+    };
+
+    return (
+        <View style={styles.container}>
+            <Card>
+                <Text style={styles.title}>Grúas UCAB</Text>
+                <Text style={styles.dynamicText}>{dynamicText}</Text>
+
+                <TextInput
+                    style={styles.input}
+                    placeholder="Correo electrónico"
+                    placeholderTextColor="#B0B0B0"
+                    value={email}
+                    onChangeText={setEmail}
+                    autoCapitalize="none"
+                    keyboardType="email-address"
+                />
+                <TextInput
+                    style={styles.input}
+                    placeholder="Contraseña"
+                    placeholderTextColor="#B0B0B0"
+                    secureTextEntry
+                    value={password}
+                    onChangeText={setPassword}
+                />
+                <TouchableOpacity
+                    style={[styles.button, loading && styles.buttonDisabled]}
+                    onPress={handleLogin}
+                    disabled={loading}
+                >
+                    {loading ? (
+                        <ActivityIndicator color="#FFFFFF" />
+                    ) : (
+                        <Text style={styles.buttonText}>Iniciar Sesión</Text>
+                    )}
+                </TouchableOpacity>
+            </Card>
+        </View>
     );
-  }
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -120,6 +148,9 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontWeight: "bold",
   },
+  buttonDisabled: {
+    backgroundColor: '#cccccc',
+  }
 });
 
 export default Login;

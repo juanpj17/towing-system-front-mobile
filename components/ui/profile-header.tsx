@@ -10,7 +10,6 @@ interface ProfileHeaderProps {
 const ProfileHeader: React.FC<ProfileHeaderProps> = ({ imageUrl, name, email }) => {
   return (
     <View style={styles.container}>
-      <Image source={{ uri: imageUrl }} style={styles.profileImage} />
       <Text style={styles.name}>{name}</Text>
       <Text style={styles.email}>{email}</Text>
     </View>
@@ -21,14 +20,6 @@ const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
     marginBottom: 20,
-  },
-  profileImage: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    marginBottom: 15,
-    borderWidth: 2,
-    borderColor: '#F66021',
   },
   name: {
     fontSize: 22,

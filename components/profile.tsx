@@ -1,18 +1,21 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import Footer from './ui/footer';
 import ProfileCard from './ui/profile-card';
+import { useDriver } from '../context/driver-context'
 
 const Profile = () => {
+  const { driver } = useDriver()
+  
   const profileData = {
     imageUrl: 'https://via.placeholder.com/150',
-    name: 'Juan Pérez',
-    email: 'juanperez@example.com',
-    licenseExpiry: '12/12/2025',
-    medicalCertificateExpiry: '15/03/2025',
-    id: '12345678',
-    status: 'Activo',
-    location: 'Caracas, Venezuela',
+    name: driver.Name,
+    email: driver.Email,
+    licenseExpiry: driver.DrivingLicenseExpiranseDate.toString(),
+    medicalCertificateExpiry: driver.MedicalCerificateExpiranseDate.toString(),
+    id: driver.IdentificationNumber,
+    status: driver.Status,
+    location: driver.Location,
   };
 
   return (

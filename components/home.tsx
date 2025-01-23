@@ -1,46 +1,82 @@
-import React, { useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView } from "react-native";
+import React, { useEffect, useState } from "react";
+import { View, Text, StyleSheet, TouchableOpacity, Alert } from "react-native";
 import StatusSelector from "./ui/status-bar";
 import LocationPicker from "./ui/location-picker";
 import Card from "./ui/card";
 import Footer from "./ui/footer";
-
-
+import { useDriver } from "../context/driver-context";
+import { driverServices } from "../services/driver-services";
 
 const HomeScreen = () => {
-  const [status, setStatus] = useState("Activo");
+  const { driver, setDriverData } = useDriver();
+  const { UpdateDriverStatus, UpdateDriverLocation } = driverServices()
+  const [status, setStatus] = useState(driver?.Status || "Activo");
   const [location, setLocation] = useState<{ description: string } | null>(null);
 
-  const handleUpdateData = async() => {
-    Alert.alert('Actualización', 'Datos actualizados correctamente');
-  };
 
+  useEffect(() => {
+    if (driver?.Status) {
+      setStatus(driver.Status);
+    }
+  }, [driver]);
+
+
+  const handleUpdateData = async () => {
+    try {
+      const updates = [];
+      
+
+      if (location?.description && location.description.trim()) {
+        updates.push(
+          UpdateDriverLocation(location.description, setDriverData).then(() => {
+            setDriverData({ ...driver, Location: location.description });
+          })
+        );
+      }
+  
+      if (status && status !== driver?.Status) {
+        updates.push(
+          UpdateDriverStatus(status, setDriverData).then(() => {
+            setDriverData({ ...driver, Status: status });
+          })
+        );
+      }
+  
+      if (updates.length === 0) {
+        Alert.alert("Sin cambios", "No hay datos nuevos para actualizar");
+        return;
+      }
+  
+      await Promise.all(updates);
+      Alert.alert("Actualización", "Datos actualizados correctamente");
+    } catch (error) {
+      console.error("Error al actualizar los datos:", error);
+      Alert.alert("Error", "No se pudo actualizar los datos.");
+    }
+  };
 
   return (
     <View style={styles.container}>
-
       <Text style={styles.headerTitle}>Home</Text>
 
       <View>
         <Card>
-        <Text style={styles.title}>Opciones</Text>
+          <Text style={styles.title}>Opciones</Text>
 
-        {/* Selector de estado */}
-        <Text style={styles.label}>Estado:</Text>
-        <StatusSelector status={status} setStatus={setStatus} />
+          {/* Selector de estado */}
+          <Text style={styles.label}>Estado:</Text>
+          <StatusSelector status={status} setStatus={setStatus} />
 
-        {/* Selector de ubicación */}
-        <Text style={styles.label}>Ubicación:</Text>
-        <LocationPicker setLocation={setLocation} />
+          {/* Selector de ubicación */}
+          <Text style={styles.label}>Ubicación:</Text>
+          <LocationPicker setLocation={setLocation} />
 
-        <TouchableOpacity
-              style={styles.updateButton}
-              onPress={handleUpdateData}
-            >
-              <Text style={styles.updateButtonText}>Actualizar datos</Text>
-        </TouchableOpacity>
+          <TouchableOpacity style={styles.updateButton} onPress={handleUpdateData}>
+            <Text style={styles.updateButtonText}>Actualizar datos</Text>
+          </TouchableOpacity>
         </Card>
       </View>
+
       {/* Footer */}
       <Footer />
     </View>

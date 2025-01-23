@@ -7,13 +7,21 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
+    "scheme": "gruasucab",
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.juanpj17.gruasucab",
+      "config": {
+        "googleMapsApiKey": "AIzaSyCKj6lflwkNHOO2-PQjbSyvVlQ_sPIATkU"
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -21,13 +29,27 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.juanpj17.gruasucab",
-      "googleServicesFile": "./google-services.json"
+      "googleServicesFile": "./google-services.json",
+      "softwareKeyboardLayoutMode": "pan",
+      "permissions": [
+        "INTERNET",
+        "ACCESS_NETWORK_STATE",
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION"
+      ],
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyCKj6lflwkNHOO2-PQjbSyvVlQ_sPIATkU"
+        }
+      }
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      ["expo-build-properties", { "android": { "usesCleartextTraffic": true}}]
     ],
     "extra": {
       "router": {
@@ -37,6 +59,13 @@
         "projectId": "0c2857e6-4fed-4d02-8ae4-6a2186fe3b16"
       }
     },
-    "owner": "juanpj17"
+    "owner": "juanpj17",
+    "updates": {
+      "fallbackToCacheTimeout": 0,
+      "url": "https://u.expo.dev/0c2857e6-4fed-4d02-8ae4-6a2186fe3b16"
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    }
   }
 }

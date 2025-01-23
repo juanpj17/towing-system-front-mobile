@@ -2,10 +2,13 @@ import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 import Icon from "react-native-vector-icons/FontAwesome5";
+import { useAuth } from '../../services/auth-services'
+
 
 const Footer = () => {
   const router = useRouter();
-
+  const { logout } = useAuth()
+  
   return (
     <View style={styles.container}>
       {/* Botón de Home */}
@@ -27,7 +30,11 @@ const Footer = () => {
       </TouchableOpacity>
 
       {/* Botón para cerrar sesion */}
-      <TouchableOpacity style={styles.tab} onPress={() => router.push("/login")}>
+      <TouchableOpacity style={styles.tab} onPress={
+        () => { 
+            router.push("/login")
+            logout()
+        }}>
         <Icon name="sign-out-alt" style={styles.icon} />
         <Text style={styles.label}>Cerrar Sesion</Text>
       </TouchableOpacity>
